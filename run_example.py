@@ -414,7 +414,7 @@ def main():
     num_users = history_u_lists.__len__()
     num_items = history_v_lists.__len__()
     num_ratings = ratings_list.__len__()
-    print "number of users, items, ratings: ", (num_users, num_items, num_ratings)
+    print("number of users, items, ratings: ", num_users, num_items, num_ratings)
     u2e = nn.Embedding(num_users, embed_dim).to(device)
     v2e = nn.Embedding(num_items, embed_dim).to(device)
     r2e = nn.Embedding(num_ratings, embed_dim).to(device)

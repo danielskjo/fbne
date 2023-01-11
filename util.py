@@ -14,7 +14,7 @@ class tools:
 			os.path.exists(G.name+'/betweenness.txt') and\
 			os.path.exists(G.name+'/eigenvector.txt') and\
 			os.path.exists(G.name+'/closeness.txt'):
-			print "Loading centrality rankings from file..."
+			print("Loading centrality rankings from file...")
 			for key in ["degree","pagerank","betweenness","eigenvector","closeness"]:
 				with open(G.name+"/"+key+".txt") as r:
 					content = r.read().splitlines()
@@ -22,50 +22,50 @@ class tools:
 				node_centrality_values[key] = np.asarray(content).astype(float)
 		else:
 			if not os.path.exists(G.name+'/degree.txt'):
-				print "Calculating degree..."
+				print("Calculating degree...")
 				start_time = time.time()
 				node_centrality_values["degree"] = nx.degree_centrality(G)
-				print "degree\t\tTime: ", time.time()-start_time
+				print("degree\t\tTime: ", time.time()-start_time)
 				fw =  open(G.name+'/degree.txt',"w")
 				for node in node_centrality_values["degree"]:
 					fw.write("%s\n" % node_centrality_values["degree"][node])
 				fw.close()
 
 			if not os.path.exists(G.name+'/pagerank.txt'):
-				print "Calculating pagerank..."
+				print("Calculating pagerank...")
 				start_time = time.time()
 				node_centrality_values["pagerank"] = nx.pagerank(G)
-				print "pagerank\t\tTime: ", time.time()-start_time
+				print("pagerank\t\tTime: ", time.time()-start_time)
 				fw =  open(G.name+'/pagerank.txt',"w")
 				for node in node_centrality_values["pagerank"]:
 					fw.write("%s\n" % node_centrality_values["pagerank"][node])
 				fw.close()
 
 			if not os.path.exists(G.name+'/betweenness.txt'):
-				print "Calculating betweenness..."
+				print("Calculating betweenness...")
 				start_time = time.time()
 				node_centrality_values["betweenness"] = nx.betweenness_centrality(G)
-				print "betweenness\t\tTime: ", time.time()-start_time
+				print("betweenness\t\tTime: ", time.time()-start_time)
 				fw =  open(G.name+'/betweenness.txt',"w")
 				for node in node_centrality_values["betweenness"]:
 					fw.write("%s\n" % node_centrality_values["betweenness"][node])
 				fw.close()
 
 			if not os.path.exists(G.name+'/eigenvector.txt'):
-				print "Calculating eigenvector..."
+				print("Calculating eigenvector...")
 				start_time = time.time()
 				node_centrality_values["eigenvector"] = nx.eigenvector_centrality_numpy(G)
-				print "eigenvector\t\tTime: ", time.time()-start_time
+				print("eigenvector\t\tTime: ", time.time()-start_time)
 				fw =  open(G.name+'/eigenvector.txt',"w")
 				for node in node_centrality_values["eigenvector"]:
 					fw.write("%s\n" % node_centrality_values["eigenvector"][node])
 				fw.close()
 
 			if not os.path.exists(G.name+'/closeness.txt'):
-				print "Calculating closeness..."
+				print("Calculating closeness...")
 				start_time = time.time()
 				node_centrality_values["closeness"] = nx.closeness_centrality(G)
-				print "closeness\t\tTime: ", time.time()-start_time
+				print("closeness\t\tTime: ", time.time()-start_time)
 				fw =  open(G.name+'/closeness.txt',"w")
 				for node in node_centrality_values["closeness"]:
 					fw.write("%s\n" % node_centrality_values["closeness"][node])
@@ -95,9 +95,9 @@ class tools:
 			os.path.exists(G.name+'/betweenness_walk.txt') and\
 			os.path.exists(G.name+'/eigenvector_walk.txt') and\
 			os.path.exists(G.name+'/closeness_walk.txt'):
-			print "Centrality Biased Random Walks exists, continue..."
+			print("Centrality Biased Random Walks exists, continue...")
 		else:
-			print "Generating Centrality Biased Random Wlaks..."
+			print("Generating Centrality Biased Random Wlaks...")
 			# centrality biased random walks
 			adj_prob = defaultdict()
 			num_walks = 5
@@ -142,7 +142,7 @@ class tools:
 		nodes_prob = defaultdict()
 		neg_neighbors = []
 
-		print "Start negative sampling..."
+		print("Start negative sampling...")
 		#out_file = file_path + G.name + net_type + '_neg_samples.txt'
 		out_file = file_path + net_type + '_neg_samples.txt'
 
@@ -171,7 +171,7 @@ class tools:
 
 					fp.write("\t".join([str(x) for x in nodes_prob[node]]))
 					fp.write("\n")
-				print "negative sampling for "+G.name+" used: ",time.clock()-start
+				print("negative sampling for "+G.name+" used: ",time.clock()-start)
 			fp.close()
 
 			if not os.path.exists(out_negative1k) and net_type == 'u2b':
@@ -185,7 +185,7 @@ class tools:
 						for sample in nodes_prob[node]:
 							wp.write(str(sample)+",")
 						wp.write("\n")
-					print "negative 1k sampling for "+G.name+" used: ",time.clock()-start				
+					print("negative 1k sampling for "+G.name+" used: ",time.clock()-start)				
 
 			with open(out_file) as r:
 				content = r.read().splitlines()
@@ -200,7 +200,7 @@ class tools:
 				for line in content:
 					info = line.split("\t")
 					neg_neighbors.append([int(x) for x in info])
-			print "Loaded fromn existing files"
+			print("Loaded fromn existing files")
 		
 		neg_neighbors = np.array(neg_neighbors)
 		return neg_neighbors
