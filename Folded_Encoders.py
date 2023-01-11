@@ -35,23 +35,26 @@ class Folded_Encoder(nn.Module):
 
         # q = self.uv2e(nodes).to(self.device)#much faster
         q = self.uv2e.weight[nodes].to(self.device)
-        #q = self.features(torch.LongTensor(nodes.cpu().numpy())).to(self.device).t() # nodes * dim
-        
+        # q = self.features(torch.LongTensor(nodes.cpu().numpy())).to(self.device).t() # nodes * dim
+
         # k = self.uv2e(torch.LongTensor(node_seq).to(self.device))#much faster
         k = self.uv2e.weight[torch.LongTensor(node_seq).to(self.device)]
-        #k = self.features(torch.LongTensor(node_seq)).to(self.device).t()#nodes * 32 * dim
+        # k = self.features(torch.LongTensor(node_seq)).to(self.device).t()#nodes * 32 * dim
 
         # v = self.uv2e(torch.LongTensor(node_seq).to(self.device)) #much faster
         v = self.uv2e.weight[torch.LongTensor(node_seq).to(self.device)]
-        #v = self.features(torch.LongTensor(node_seq)).to(self.device).t()#nodes * 32 * dim
+        # v = self.features(torch.LongTensor(node_seq)).to(self.device).t()#nodes * 32 * dim
 
-        folded_feats, attention = self.Self_Attn.forward(q, k, v, batch_size, scale = 0.125) 
+        folded_feats, attention = self.Self_Attn.forward(
+            q, k, v, batch_size, scale=0.125)
 
-        self_feats = self.features(torch.LongTensor(nodes.cpu().numpy())).to(self.device)
+        self_feats = self.features(torch.LongTensor(
+            nodes.cpu().numpy())).to(self.device)
         self_feats = self_feats.t()
-        
+
         # self-connection could be considered.
-        combined = torch.cat([self_feats, folded_feats.view(batch_size, self.embed_dim)], dim=1)
+        combined = torch.cat(
+            [self_feats, folded_feats.view(batch_size, self.embed_dim)], dim=1)
         combined = F.relu(self.linear1(combined))
 
         return combined

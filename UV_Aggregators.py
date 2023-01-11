@@ -26,7 +26,8 @@ class UV_Aggregator(nn.Module):
 
     def forward(self, nodes, history_uv, history_r):
 
-        embed_matrix = torch.empty(len(history_uv), self.embed_dim, dtype=torch.float).to(self.device)
+        embed_matrix = torch.empty(
+            len(history_uv), self.embed_dim, dtype=torch.float).to(self.device)
 
         for i in range(len(history_uv)):
             history = history_uv[i]
@@ -34,12 +35,12 @@ class UV_Aggregator(nn.Module):
             tmp_label = history_r[i]
             if self.uv == True:
                 # user component
-                e_uv = self.v2e.weight[history] 
+                e_uv = self.v2e.weight[history]
                 uv_rep = self.u2e.weight[nodes[i]]
             else:
                 # item component
                 e_uv = self.u2e.weight[history]
-                uv_rep = self.v2e.weight[nodes[i]] 
+                uv_rep = self.v2e.weight[nodes[i]]
 
             e_r = self.r2e.weight[tmp_label]
 
