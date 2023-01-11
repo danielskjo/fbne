@@ -198,14 +198,14 @@ def generate_bipartite_folded_walks(path, history_u_lists, history_v_lists, edge
     BiG = nx.Graph()
     node_u = history_u_lists.keys()
     node_v = history_v_lists.keys()
-    node_u.sort()
-    node_v.sort()
+    sorted(node_u)
+    sorted(node_v)
 
     BiG.add_nodes_from(node_u, bipartite=0)
     BiG.add_nodes_from(node_v, bipartite=1)
     BiG.add_weighted_edges_from(edge_list_uv + edge_list_vu)
     A = bi.biadjacency_matrix(
-        BiG, node_u, node_v, dtype=np.float, weight='weight', format='csr')
+        BiG, node_u, node_v, dtype=np.float64, weight='weight', format='csr')
 
     # node_u_id_original : index_new
     row_index = dict(zip(node_u, itertools.count()))
@@ -258,10 +258,10 @@ def load(path):
     G = nx.Graph()
     G.name = path
 
-    for net_type in ['u2u_new', 'u2b']:
-        with open(path+net_type+".net") as fp:
+    for net_type in ['u2u', 'u2b']:
+        with open(path+net_type+".txt") as fp:
             for line in fp:
-                info = line.strip().split("\t")
+                info = line.strip().split(" ")
                 node1 = info[0]
                 node2 = info[1]
                 rating = int(float(info[2]))
@@ -274,7 +274,7 @@ def load(path):
                     uSet_u2b.add(node1)
                     bSet_u2b.add(node2)
 
-    print(nx.info(G))
+    print(G)
     print("uSet of u2u, size: " + str(len(uSet_u2u)))
     print("uSet of u2b, size: " + str(len(uSet_u2b)))
     print("bSet of u2b, size: " + str(len(bSet_u2b)))
@@ -284,7 +284,7 @@ def load(path):
 
     node_names = nx.get_node_attributes(
         G, 'name')  # key-value dict {'id':'name'}
-    inv_map = {v: k for k, v in node_names.iteritems()}
+    inv_map = {v: k for k, v in node_names.items()}
 
     uSet_u2u = set([inv_map.get(name) for name in uSet_u2u])
     uSet_u2b = set([inv_map.get(name) for name in uSet_u2b])
@@ -360,9 +360,9 @@ def load(path):
     _train_u, _train_v, _train_r, _test_u, _test_v, _test_r = [], [], [], [], [], []
 
     user_id_dic = {v: k for k, v in dict(
-        enumerate(history_u_lists.keys())).iteritems()}
+        enumerate(history_u_lists.keys())).items()}
     item_id_dic = {v: k for k, v in dict(
-        enumerate(history_v_lists.keys())).iteritems()}
+        enumerate(history_v_lists.keys())).items()}
 
     for u in history_u_lists:
         _history_u_lists[user_id_dic[u]] = [item_id_dic[v]
@@ -429,7 +429,7 @@ def main():
 
     embed_dim = args.embed_dim
 
-    path = '../SageIndRec/data/EDH/'
+    path = 'data/'
     history_u_lists, history_ur_lists, history_v_lists, history_vr_lists, walks_u, walks_v, train_u, train_v, train_r, test_u, test_v, test_r, social_adj_lists, ratings_list = load(
         path)
 
