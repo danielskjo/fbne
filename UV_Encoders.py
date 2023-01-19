@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-from torch.nn import init
 import torch.nn.functional as F
 
 
@@ -25,8 +24,7 @@ class UV_Encoder(nn.Module):
             tmp_history_uv.append(self.history_uv_lists[int(node)])
             tmp_history_r.append(self.history_r_lists[int(node)])
 
-        neigh_feats = self.aggregator.forward(
-            nodes, tmp_history_uv, tmp_history_r)  # user-item network
+        neigh_feats = self.aggregator.forward(nodes, tmp_history_uv, tmp_history_r)  # user-item network
 
         self_feats = self.features.weight[nodes]
         # self-connection could be considered.

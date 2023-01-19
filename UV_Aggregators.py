@@ -1,15 +1,12 @@
 import torch
 import torch.nn as nn
-from torch.autograd import Variable
 import torch.nn.functional as F
-import numpy as np
-import random
 from Attention import Attention
 
 
 class UV_Aggregator(nn.Module):
     """
-    item and user aggregator: for aggregating embeddings of neighbors (item/user aggreagator).
+    item and user aggregator: for aggregating embeddings of neighbors (item/user aggregator).
     """
 
     def __init__(self, v2e, r2e, u2e, embed_dim, cuda="cpu", uv=True):
@@ -26,14 +23,13 @@ class UV_Aggregator(nn.Module):
 
     def forward(self, nodes, history_uv, history_r):
 
-        embed_matrix = torch.empty(
-            len(history_uv), self.embed_dim, dtype=torch.float).to(self.device)
+        embed_matrix = torch.empty(len(history_uv), self.embed_dim, dtype=torch.float).to(self.device)
 
         for i in range(len(history_uv)):
             history = history_uv[i]
-            num_histroy_item = len(history)
+            num_history_item = len(history)
             tmp_label = history_r[i]
-            if self.uv == True:
+            if self.uv:
                 # user component
                 e_uv = self.v2e.weight[history]
                 uv_rep = self.u2e.weight[nodes[i]]
@@ -48,7 +44,7 @@ class UV_Aggregator(nn.Module):
             x = F.relu(self.w_r1(x))
             o_history = F.relu(self.w_r2(x))
 
-            att_w = self.att(o_history, uv_rep, num_histroy_item)
+            att_w = self.att(o_history, uv_rep, num_history_item)
             att_history = torch.mm(o_history.t(), att_w)
             att_history = att_history.t()
 

@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-from torch.nn import init
 import torch.nn.functional as F
 
 
@@ -12,7 +11,7 @@ class Social_Encoder(nn.Module):
         self.features = features
         self.social_adj_lists = social_adj_lists
         self.aggregator = aggregator
-        if base_model != None:
+        if base_model is not None:
             self.base_model = base_model
         self.embed_dim = embed_dim
         self.device = cuda
@@ -23,11 +22,9 @@ class Social_Encoder(nn.Module):
         to_neighs = []
         for node in nodes:
             to_neighs.append(self.social_adj_lists[int(node)])
-        neigh_feats = self.aggregator.forward(
-            nodes, to_neighs)  # user-user network
+        neigh_feats = self.aggregator.forward(nodes, to_neighs)  # user-user network
 
-        self_feats = self.features(torch.LongTensor(
-            nodes.cpu().numpy())).to(self.device)
+        self_feats = self.features(torch.LongTensor(nodes.cpu().numpy())).to(self.device)
         self_feats = self_feats.t()
 
         # self-connection could be considered.

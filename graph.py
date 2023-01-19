@@ -4,23 +4,18 @@
 """Graph utilities."""
 
 import logging
-import sys
 from io import open
-from os import path
 from time import time
-from glob import glob
 from six.moves import range, zip, zip_longest
 from six import iterkeys
 from collections import defaultdict
 from collections.abc import Iterable
 import random
-from random import shuffle
-from itertools import product, permutations
+from itertools import permutations
 from scipy.io import loadmat
 from scipy.sparse import issparse
 
 logger = logging.getLogger("deepwalk")
-
 
 __author__ = "Bryan Perozzi"
 __email__ = "bperozzi@cs.stonybrook.edu"
@@ -59,7 +54,7 @@ class Graph(defaultdict):
                     self[other].append(v)
 
         t1 = time()
-        logger.info('make_directed: added missing edges {}s'.format(t1-t0))
+        logger.info('make_directed: added missing edges {}s'.format(t1 - t0))
 
         self.make_consistent()
         return self
@@ -70,7 +65,7 @@ class Graph(defaultdict):
             self[k] = list(sorted(set(self[k])))
 
         t1 = time()
-        logger.info('make_consistent: made consistent in {}s'.format(t1-t0))
+        logger.info('make_consistent: made consistent in {}s'.format(t1 - t0))
 
         self.remove_self_loops()
 
@@ -89,7 +84,7 @@ class Graph(defaultdict):
         t1 = time()
 
         logger.info(
-            'remove_self_loops: removed {} loops in {}s'.format(removed, (t1-t0)))
+            'remove_self_loops: removed {} loops in {}s'.format(removed, (t1 - t0)))
         return self
 
     def check_self_loops(self):
@@ -112,15 +107,15 @@ class Graph(defaultdict):
             return len(self[nodes])
 
     def order(self):
-        "Returns the number of nodes in the graph"
+        """Returns the number of nodes in the graph"""
         return len(self)
 
     def number_of_edges(self):
-        "Returns the number of nodes in the graph"
-        return sum([self.degree(x) for x in self.keys()])/2
+        """Returns the number of nodes in the graph"""
+        return sum([self.degree(x) for x in self.keys()]) / 2
 
     def number_of_nodes(self):
-        "Returns the number of nodes in the graph"
+        """Returns the number of nodes in the graph"""
         return self.order()
 
     def random_walk(self, path_length, alpha=0, rand=random.Random(), start=None):
@@ -150,11 +145,11 @@ class Graph(defaultdict):
         # return [str(node) for node in path]
         return path
 
+
 # TODO add build_walks in here
 
 
-def build_deepwalk_corpus(G, num_paths, path_length, alpha=0,
-                          rand=random.Random(0)):
+def build_deepwalk_corpus(G, num_paths, path_length, alpha=0,rand=random.Random(0)):
     walks = defaultdict(list)
 
     nodes = list(G.nodes())
@@ -182,13 +177,13 @@ def build_deepwalk_corpus_iter(G, num_paths, path_length, alpha=0,
 
 
 def clique(size):
-    return from_adjlist(permutations(range(1, size+1)))
+    return from_adjlist(permutations(range(1, size + 1)))
 
 
 # http://stackoverflow.com/questions/312443/how-do-you-split-a-list-into-evenly-sized-chunks-in-python
 def grouper(n, iterable, padvalue=None):
     "grouper(3, 'abcdefg', 'x') --> ('a','b','c'), ('d','e','f'), ('g','x','x')"
-    return zip_longest(*[iter(iterable)]*n, fillvalue=padvalue)
+    return zip_longest(*[iter(iterable)] * n, fillvalue=padvalue)
 
 
 def parse_adjacencylist(f):
@@ -213,7 +208,6 @@ def parse_adjacencylist_unchecked(f):
 
 
 def load_adjacencylist(file_, undirected=False, chunksize=10000, unchecked=True):
-
     if unchecked:
         parse_func = parse_adjacencylist_unchecked
         convert_func = from_adjlist_unchecked
@@ -234,19 +228,19 @@ def load_adjacencylist(file_, undirected=False, chunksize=10000, unchecked=True)
     t1 = time()
 
     logger.info('Parsed {} edges with {} chunks in {}s'.format(
-        total, idx, t1-t0))
+        total, idx, t1 - t0))
 
     t0 = time()
     G = convert_func(adjlist)
     t1 = time()
 
-    logger.info('Converted edges to graph in {}s'.format(t1-t0))
+    logger.info('Converted edges to graph in {}s'.format(t1 - t0))
 
     if undirected:
         t0 = time()
         G = G.make_undirected()
         t1 = time()
-        logger.info('Made graph undirected in {}s'.format(t1-t0))
+        logger.info('Made graph undirected in {}s'.format(t1 - t0))
 
     return G
 

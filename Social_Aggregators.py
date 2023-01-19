@@ -1,8 +1,5 @@
 import torch
 import torch.nn as nn
-from torch.autograd import Variable
-import numpy as np
-import random
 from Attention import Attention
 
 
@@ -21,8 +18,7 @@ class Social_Aggregator(nn.Module):
         self.att = Attention(self.embed_dim)
 
     def forward(self, nodes, to_neighs):
-        embed_matrix = torch.empty(
-            len(nodes), self.embed_dim, dtype=torch.float).to(self.device)
+        embed_matrix = torch.empty(len(nodes), self.embed_dim, dtype=torch.float).to(self.device)
 
         for i in range(len(nodes)):
             tmp_adj = to_neighs[i]

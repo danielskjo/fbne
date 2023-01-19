@@ -1,9 +1,7 @@
 import torch
 import torch.nn as nn
-from torch.nn import init
 import torch.nn.functional as F
 from Attention import Self_Attn
-import time
 
 
 class Folded_Encoder(nn.Module):
@@ -13,7 +11,7 @@ class Folded_Encoder(nn.Module):
         self.features = features
         self.uv2e = uv2e
         self.seq_len = seq_len
-        if base_model != None:
+        if base_model is not None:
             self.base_model = base_model
         self.embed_dim = embed_dim
         self.device = cuda
@@ -45,16 +43,13 @@ class Folded_Encoder(nn.Module):
         v = self.uv2e.weight[torch.LongTensor(node_seq).to(self.device)]
         # v = self.features(torch.LongTensor(node_seq)).to(self.device).t()#nodes * 32 * dim
 
-        folded_feats, attention = self.Self_Attn.forward(
-            q, k, v, batch_size, scale=0.125)
+        folded_feats, attention = self.Self_Attn.forward(q, k, v, batch_size, scale=0.125)
 
-        self_feats = self.features(torch.LongTensor(
-            nodes.cpu().numpy())).to(self.device)
+        self_feats = self.features(torch.LongTensor(nodes.cpu().numpy())).to(self.device)
         self_feats = self_feats.t()
 
         # self-connection could be considered.
-        combined = torch.cat(
-            [self_feats, folded_feats.view(batch_size, self.embed_dim)], dim=1)
+        combined = torch.cat([self_feats, folded_feats.view(batch_size, self.embed_dim)], dim=1)
         combined = F.relu(self.linear1(combined))
 
         return combined
