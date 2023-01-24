@@ -4,13 +4,13 @@ import torch.nn.functional as F
 from Attention import Attention
 
 
-class UV_Aggregator(nn.Module):
+class UVAggregator(nn.Module):
     """
     item and user aggregator: for aggregating embeddings of neighbors (item/user aggregator).
     """
 
     def __init__(self, v2e, r2e, u2e, embed_dim, cuda="cpu", uv=True):
-        super(UV_Aggregator, self).__init__()
+        super(UVAggregator, self).__init__()
         self.uv = uv
         self.v2e = v2e
         self.r2e = r2e
@@ -30,11 +30,9 @@ class UV_Aggregator(nn.Module):
             num_history_item = len(history)
             tmp_label = history_r[i]
             if self.uv:
-                # user component
                 e_uv = self.v2e.weight[history]
                 uv_rep = self.u2e.weight[nodes[i]]
             else:
-                # item component
                 e_uv = self.u2e.weight[history]
                 uv_rep = self.v2e.weight[nodes[i]]
 

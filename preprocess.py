@@ -23,8 +23,7 @@ def save_homogenous_graph_to_file(A, datafile, index_row, index_item):
             for col in range(indptr[row], indptr[row + 1]):
                 r = row
                 c = indices[col]
-                fw.write(str(index_row.get(r)) + "\t" +
-                         str(index_item.get(c)) + "\t" + str(data[col_index]) + "\n")
+                fw.write(str(index_row.get(r)) + "\t" + str(index_item.get(c)) + "\t" + str(data[col_index]) + "\n")
                 col_index += 1
 
 
@@ -53,26 +52,23 @@ def calculate_centrality(G, uSet, bSet, mode='hits'):
     for node in G.nodes():
         if node in uSet:
             if max_a_u - min_a_u != 0:
-                authority_u[node] = (
-                                            float(a[node]) - min_a_u) / (max_a_u - min_a_u)
+                authority_u[node] = (float(a[node]) - min_a_u) / (max_a_u - min_a_u)
             else:
                 authority_u[node] = 0
         if node in bSet:
             if max_a_v - min_a_v != 0:
-                authority_v[node] = (
-                                            float(a[node]) - min_a_v) / (max_a_v - min_a_v)
+                authority_v[node] = (float(a[node]) - min_a_v) / (max_a_v - min_a_v)
             else:
                 authority_v[node] = 0
     return authority_u, authority_v
 
 
-def get_random_walks_restart(datafile, hits_dict, percentage, maxT, minT):
+def get_random_walks_restart(datafile):
     G = graph.load_edgelist(datafile, undirected=True)
     print("Folded HIN ==> number of nodes: {}".format(len(G.nodes())))
     print("walking...")
     # walks = graph.build_deepwalk_corpus_random(G, hits_dict, percentage=percentage, maxT = maxT, minT = minT, alpha=0)
-    walks = graph.build_deepwalk_corpus(
-        G, None, 5, alpha=0, rand=random.Random())
+    walks = graph.build_deepwalk_corpus(G, None, 5, alpha=0, rand=random.Random())
     print("walking...ok")
     return G, walks
 
@@ -87,16 +83,12 @@ def generate_bipartite_folded_walks(path, history_u_lists, history_v_lists, edge
     BiG.add_nodes_from(node_u, bipartite=0)
     BiG.add_nodes_from(node_v, bipartite=1)
     BiG.add_weighted_edges_from(edge_list_uv + edge_list_vu)
-    A = bi.biadjacency_matrix(
-        BiG, node_u, node_v, dtype=np.float64, weight='weight', format='csr')
+    A = bi.biadjacency_matrix(BiG, node_u, node_v, dtype=np.float64, weight='weight', format='csr')
 
-    # node_u_id_original : index_new
     row_index = dict(zip(node_u, itertools.count()))
-    # node_v_id_original : index_new
     col_index = dict(zip(node_v, itertools.count()))
 
-    index_row = dict(zip(row_index.values(), row_index.keys())
-                     )  # index_new : node_u_id_original
+    index_row = dict(zip(row_index.values(), row_index.keys()))
     index_item = dict(zip(col_index.values(), col_index.keys()))
 
     AT = A.transpose()
@@ -108,10 +100,8 @@ def generate_bipartite_folded_walks(path, history_u_lists, history_v_lists, edge
     authority_u, authority_v = calculate_centrality(
         BiG, node_u, node_v)  # todo task
 
-    G_u, walks_u = get_random_walks_restart(
-        fw_u, authority_u, percentage=0.15, maxT=32, minT=1)
-    G_v, walks_v = get_random_walks_restart(
-        fw_v, authority_v, percentage=0.15, maxT=32, minT=1)
+    G_u, walks_u = get_random_walks_restart(fw_u, authority_u, percentage=0.15, maxT=32, minT=1)
+    G_v, walks_v = get_random_walks_restart(fw_v, authority_v, percentage=0.15, maxT=32, minT=1)
 
     return G_u, walks_u, G_v, walks_v
 
@@ -194,11 +184,9 @@ def preprocess(path):
     print("Len: history_u_lists: ", len(history_u_lists))
     print("Len: history_v_lists: ", len(history_v_lists))
 
-    # create bipartite graph for random walk
     G_u, walks_u, G_v, walks_v = generate_bipartite_folded_walks(path, history_u_lists, history_v_lists, edge_list_uv,
                                                                  edge_list_vu)
 
-    # data split
     data = []
     for (u, v) in G.edges():
         if G[u][v]['type'] == 'u2b':
