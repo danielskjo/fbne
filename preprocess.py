@@ -8,6 +8,7 @@ import os
 import networkx as nx
 from networkx.algorithms import bipartite as bi
 import itertools
+from scipy.io import loadmat
 
 
 def save_homogenous_graph_to_file(A, datafile, index_row, index_item):
@@ -116,9 +117,6 @@ def generate_bipartite_folded_walks(path, history_u_lists, history_v_lists, edge
 
 
 def preprocess(path):
-    click_f = np.loadtxt(path + 'ratings_data.txt', dtype=np.int32)
-    trust_f = np.loadtxt(path + 'trust_data.txt', dtype=np.int32)
-
     uSet_u2u = set()
     uSet_u2b = set()
     bSet_u2b = set()
@@ -133,10 +131,16 @@ def preprocess(path):
     G = nx.Graph()
     G.name = path
 
-    for s in click_f:
+    ratings_f = loadmat(path + 'ciao/rating.mat')['rating']
+    trust_f = loadmat(path + 'ciao/trustnetwork.mat')['trustnetwork']
+
+    # ratings_f = loadmat(path + 'epinions/rating.mat')['rating']
+    # trust_f = loadmat(path + 'epinions/trustnetwork.mat')['trustnetwork']
+
+    for s in ratings_f:
         uid = s[0]
         iid = s[1]
-        rating = s[2]
+        rating = s[3]
         uSet_u2b.add(uid)
         bSet_u2b.add(iid)
         G.add_edge(uid, iid, type='u2b', rating=rating)
