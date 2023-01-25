@@ -1,13 +1,14 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 from SelfAttention import SelfAttention
 
 
 class FoldedEncoder(nn.Module):
-
     def __init__(self, features, uv2e, embed_dim, seq_len, folded_seq, base_model=None, cuda="cpu"):
         super(FoldedEncoder, self).__init__()
+
         self.features = features
         self.uv2e = uv2e
         self.seq_len = seq_len
@@ -23,10 +24,13 @@ class FoldedEncoder(nn.Module):
 
     def forward(self, nodes):
         node_seq = []
+
         for node in nodes.cpu().numpy():
             seq = self.folded_seq[int(node)]
+
             while len(seq) < self.seq_len:
                 seq.append(node)
+
             node_seq.append(seq[::-1])
 
         batch_size = len(node_seq)

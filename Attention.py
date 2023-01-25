@@ -6,6 +6,7 @@ import torch.nn.functional as F
 class Attention(nn.Module):
     def __init__(self, embedding_dims):
         super(Attention, self).__init__()
+
         self.embed_dim = embedding_dims
         self.att1 = nn.Linear(self.embed_dim * 2, self.embed_dim)
         self.att2 = nn.Linear(self.embed_dim, self.embed_dim)
@@ -20,4 +21,5 @@ class Attention(nn.Module):
         x = F.dropout(x, training=self.training)
         x = self.att3(x)
         att = F.softmax(x, dim=0)
+
         return att

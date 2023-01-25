@@ -45,7 +45,6 @@ class Graph(defaultdict):
         return subgraph
 
     def make_undirected(self):
-
         t0 = time()
 
         for v in self.keys():
@@ -55,24 +54,23 @@ class Graph(defaultdict):
 
         t1 = time()
         logger.info('make_directed: added missing edges {}s'.format(t1 - t0))
-
         self.make_consistent()
+
         return self
 
     def make_consistent(self):
         t0 = time()
+
         for k in iterkeys(self):
             self[k] = list(sorted(set(self[k])))
 
         t1 = time()
         logger.info('make_consistent: made consistent in {}s'.format(t1 - t0))
-
         self.remove_self_loops()
 
         return self
 
     def remove_self_loops(self):
-
         removed = 0
         t0 = time()
 
@@ -82,9 +80,8 @@ class Graph(defaultdict):
                 removed += 1
 
         t1 = time()
+        logger.info('remove_self_loops: removed {} loops in {}s'.format(removed, (t1 - t0)))
 
-        logger.info(
-            'remove_self_loops: removed {} loops in {}s'.format(removed, (t1 - t0)))
         return self
 
     def check_self_loops(self):
@@ -98,6 +95,7 @@ class Graph(defaultdict):
     def has_edge(self, v1, v2):
         if v2 in self[v1] or v1 in self[v2]:
             return True
+
         return False
 
     def degree(self, nodes=None):
@@ -126,6 +124,7 @@ class Graph(defaultdict):
                         start: the start node of the random walk.
         """
         G = self
+
         if start is not None:
             # if start:
             path = [start]
@@ -135,6 +134,7 @@ class Graph(defaultdict):
 
         while len(path) < path_length:
             cur = path[-1]
+
             if len(G[cur]) > 0:
                 if rand.random() >= alpha:
                     path.append(rand.choice(G[cur]))
@@ -143,16 +143,17 @@ class Graph(defaultdict):
             else:
                 break
         # return [str(node) for node in path]
+
         return path
 
 
 # TODO add build_walks in here
 
 
-def build_deepwalk_corpus(G, num_paths, path_length, alpha=0,rand=random.Random(0)):
+def build_deepwalk_corpus(G, num_paths, path_length, alpha=0, rand=random.Random(0)):
     walks = defaultdict(list)
-
     nodes = list(G.nodes())
+
     for node in nodes:
         walks[node] = G.random_walk(
             path_length, rand=rand, alpha=alpha, start=node)
@@ -164,14 +165,13 @@ def build_deepwalk_corpus(G, num_paths, path_length, alpha=0,rand=random.Random(
     return walks
 
 
-def build_deepwalk_corpus_iter(G, num_paths, path_length, alpha=0,
-                               rand=random.Random(0)):
+def build_deepwalk_corpus_iter(G, num_paths, path_length, alpha=0, rand=random.Random(0)):
     walks = []
-
     nodes = list(G.nodes())
 
     for cnt in range(num_paths):
         rand.shuffle(nodes)
+
         for node in nodes:
             yield G.random_walk(path_length, rand=rand, alpha=alpha, start=node)
 
@@ -188,6 +188,7 @@ def grouper(n, iterable, padvalue=None):
 
 def parse_adjacencylist(f):
     adjlist = []
+
     for l in f:
         if l and l[0] != "#":
             introw = [int(x) for x in l.strip().split()]
@@ -200,6 +201,7 @@ def parse_adjacencylist(f):
 
 def parse_adjacencylist_unchecked(f):
     adjlist = []
+
     for l in f:
         if l and l[0] != "#":
             adjlist.extend([[int(x) for x in l.strip().split()]])
@@ -216,24 +218,19 @@ def load_adjacencylist(file_, undirected=False, chunksize=10000, unchecked=True)
         convert_func = from_adjlist
 
     adjlist = []
-
     t0 = time()
-
     total = 0
+
     with open(file_) as f:
         for idx, adj_chunk in enumerate(map(parse_func, grouper(int(chunksize), f))):
             adjlist.extend(adj_chunk)
             total += len(adj_chunk)
 
     t1 = time()
-
-    logger.info('Parsed {} edges with {} chunks in {}s'.format(
-        total, idx, t1 - t0))
-
+    logger.info('Parsed {} edges with {} chunks in {}s'.format(total, idx, t1 - t0))
     t0 = time()
     G = convert_func(adjlist)
     t1 = time()
-
     logger.info('Converted edges to graph in {}s'.format(t1 - t0))
 
     if undirected:
@@ -247,16 +244,19 @@ def load_adjacencylist(file_, undirected=False, chunksize=10000, unchecked=True)
 
 def load_edgelist(file_, undirected=True):
     G = Graph()
+
     with open(file_) as f:
         for l in f:
             x, y = l.strip().split()[:2]
             x = int(x)
             y = int(y)
             G[x].append(y)
+
             if undirected:
                 G[y].append(x)
 
     G.make_consistent()
+
     return G
 
 
@@ -285,6 +285,7 @@ def from_numpy(x, undirected=True):
 
     if issparse(x):
         cx = x.tocoo()
+
         for i, j, v in zip(cx.row, cx.col, cx.data):
             G[i].append(j)
     else:
@@ -294,6 +295,7 @@ def from_numpy(x, undirected=True):
         G.make_undirected()
 
     G.make_consistent()
+
     return G
 
 

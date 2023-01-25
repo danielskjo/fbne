@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 from Attention import Attention
 
 
@@ -8,9 +9,9 @@ class UVAggregator(nn.Module):
     """
     item and user aggregator: for aggregating embeddings of neighbors (item/user aggregator).
     """
-
     def __init__(self, v2e, r2e, u2e, embed_dim, cuda="cpu", uv=True):
         super(UVAggregator, self).__init__()
+
         self.uv = uv
         self.v2e = v2e
         self.r2e = r2e
@@ -22,13 +23,13 @@ class UVAggregator(nn.Module):
         self.att = Attention(self.embed_dim)
 
     def forward(self, nodes, history_uv, history_r):
-
         embed_matrix = torch.empty(len(history_uv), self.embed_dim, dtype=torch.float).to(self.device)
 
         for i in range(len(history_uv)):
             history = history_uv[i]
             num_history_item = len(history)
             tmp_label = history_r[i]
+
             if self.uv:
                 e_uv = self.v2e.weight[history]
                 uv_rep = self.u2e.weight[nodes[i]]
@@ -49,4 +50,5 @@ class UVAggregator(nn.Module):
             embed_matrix[i] = att_history
 
         to_feats = embed_matrix
+
         return to_feats

@@ -5,9 +5,9 @@ import torch.nn.functional as F
 
 class SelfAttention(nn.Module):
     """ Self attention Layer"""
-
     def __init__(self, embedding_dims):
         super(SelfAttention, self).__init__()
+
         self.embed_dim = embedding_dims
         self.linear_q = nn.Linear(self.embed_dim, self.embed_dim)
         self.linear_k = nn.Linear(self.embed_dim, self.embed_dim)

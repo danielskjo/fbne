@@ -4,7 +4,6 @@ import torch.nn.functional as F
 
 
 class SocialEncoder(nn.Module):
-
     def __init__(self, features, embed_dim, social_adj_lists, aggregator, base_model=None, cuda="cpu"):
         super(SocialEncoder, self).__init__()
 
@@ -21,8 +20,10 @@ class SocialEncoder(nn.Module):
 
     def forward(self, nodes):
         to_neighs = []
+
         for node in nodes:
             to_neighs.append(self.social_adj_lists[int(node)])
+
         neigh_feats = self.aggregator.forward(nodes, to_neighs)
 
         self_feats = self.features(torch.LongTensor(nodes.cpu().numpy())).to(self.device)

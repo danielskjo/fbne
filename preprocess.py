@@ -1,14 +1,15 @@
-import pickle
-import numpy as np
-import random
-import graph
 from collections import defaultdict
-
+import itertools
 import os
+import pickle
+import random
+
 import networkx as nx
 from networkx.algorithms import bipartite as bi
-import itertools
+import numpy as np
 from scipy.io import loadmat
+
+import graph
 
 
 def save_homogenous_graph_to_file(A, datafile, index_row, index_item):
@@ -18,6 +19,7 @@ def save_homogenous_graph_to_file(A, datafile, index_row, index_item):
     indptr = csr_dict.get("indptr")
     indices = csr_dict.get("indices")
     col_index = 0
+
     with open(datafile, 'w') as fw:
         for row in range(M):
             for col in range(indptr[row], indptr[row + 1]):
@@ -30,6 +32,7 @@ def save_homogenous_graph_to_file(A, datafile, index_row, index_item):
 def calculate_centrality(G, uSet, bSet, mode='hits'):
     authority_u = {}
     authority_v = {}
+
     if mode == 'degree_centrality':
         a = nx.degree_centrality(G)
     else:
@@ -60,6 +63,7 @@ def calculate_centrality(G, uSet, bSet, mode='hits'):
                 authority_v[node] = (float(a[node]) - min_a_v) / (max_a_v - min_a_v)
             else:
                 authority_v[node] = 0
+
     return authority_u, authority_v
 
 
@@ -70,6 +74,7 @@ def get_random_walks_restart(datafile):
     # walks = graph.build_deepwalk_corpus_random(G, hits_dict, percentage=percentage, maxT = maxT, minT = minT, alpha=0)
     walks = graph.build_deepwalk_corpus(G, None, 5, alpha=0, rand=random.Random())
     print("walking...ok")
+
     return G, walks
 
 
@@ -97,8 +102,7 @@ def generate_bipartite_folded_walks(path, history_u_lists, history_v_lists, edge
     save_homogenous_graph_to_file(A.dot(AT), fw_u, index_row, index_row)
     save_homogenous_graph_to_file(AT.dot(A), fw_v, index_item, index_item)
 
-    authority_u, authority_v = calculate_centrality(
-        BiG, node_u, node_v)  # todo task
+    authority_u, authority_v = calculate_centrality(BiG, node_u, node_v)  # todo task
 
     G_u, walks_u = get_random_walks_restart(fw_u, authority_u, percentage=0.15, maxT=32, minT=1)
     G_v, walks_v = get_random_walks_restart(fw_v, authority_v, percentage=0.15, maxT=32, minT=1)
@@ -163,8 +167,10 @@ def preprocess(path):
         for nbr in G[node]:
             if G[node][nbr]['type'] == 'u2u':
                 social_adj_lists[node].add(nbr)
+
             if G[node][nbr]['type'] == 'u2b':
                 r = G[node][nbr]['rating'] - 1
+
                 if node in uSet_u2b and nbr in bSet_u2b:
                     history_u_lists[node].append(nbr)
                     history_v_lists[nbr].append(node)
@@ -188,9 +194,11 @@ def preprocess(path):
                                                                  edge_list_vu)
 
     data = []
+
     for (u, v) in G.edges():
         if G[u][v]['type'] == 'u2b':
             r = G[u][v]['rating'] - 1
+
             if u in uSet_u2b:
                 data.append((u, v, r))
             else:
