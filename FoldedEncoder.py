@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from Attention import SelfAttention
+from SelfAttention import SelfAttention
 
 
 class FoldedEncoder(nn.Module):
