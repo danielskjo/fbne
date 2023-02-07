@@ -42,8 +42,6 @@ class GraphRec(nn.Module):
         x = F.dropout(x, training=self.training)
         scores = self.w_uv3(x)
 
-        print(scores.squeeze())
-
         return scores.squeeze()
 
     def loss(self, nodes_u, nodes_v, labels_list):
