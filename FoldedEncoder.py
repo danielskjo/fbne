@@ -6,19 +6,15 @@ from SelfAttention import SelfAttention
 
 
 class FoldedEncoder(nn.Module):
-    def __init__(self, features, uv2e, embed_dim, seq_len, folded_seq, base_model=None, cuda="cpu"):
+    def __init__(self, features, uv2e, embed_dim, seq_len, folded_seq, cuda="cpu"):
         super(FoldedEncoder, self).__init__()
 
         self.features = features
-        self.uv2e = uv2e
-        self.seq_len = seq_len
-
-        if base_model is not None:
-            self.base_model = base_model
-
-        self.embed_dim = embed_dim
+        self.uv2e = uv2e  # User/item embedding
+        self.seq_len = seq_len  # 5
+        self.embed_dim = embed_dim  # 64
         self.device = cuda
-        self.folded_seq = folded_seq
+        self.folded_seq = folded_seq  # Random walks
         self.self_attention = SelfAttention(embed_dim)
         self.linear1 = nn.Linear(2 * self.embed_dim, self.embed_dim)
 

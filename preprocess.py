@@ -72,7 +72,7 @@ def get_random_walks_restart(datafile):
     print("Folded HIN ==> number of nodes: {}".format(len(G.nodes())))
     print("walking...")
     # walks = graph.build_deepwalk_corpus_random(G, hits_dict, percentage=percentage, maxT = maxT, minT = minT, alpha=0)
-    walks = graph.build_deepwalk_corpus(G, None, 5, alpha=0, rand=random.Random())
+    walks = graph.build_deepwalk_corpus(G, None, 5, rand=random.Random())
     print("walking...ok")
 
     return G, walks
@@ -102,10 +102,12 @@ def generate_bipartite_folded_walks(path, history_u_lists, history_v_lists, edge
     save_homogenous_graph_to_file(A.dot(AT), fw_u, index_row, index_row)
     save_homogenous_graph_to_file(AT.dot(A), fw_v, index_item, index_item)
 
-    authority_u, authority_v = calculate_centrality(BiG, node_u, node_v)  # todo task
+    # TODO
+    authority_u, authority_v = calculate_centrality(BiG, node_u, node_v)
 
-    G_u, walks_u = get_random_walks_restart(fw_u, authority_u, percentage=0.15, maxT=32, minT=1)
-    G_v, walks_v = get_random_walks_restart(fw_v, authority_v, percentage=0.15, maxT=32, minT=1)
+    # TODO
+    G_u, walks_u = get_random_walks_restart(fw_u)
+    G_v, walks_v = get_random_walks_restart(fw_v)
 
     return G_u, walks_u, G_v, walks_v
 
@@ -123,13 +125,10 @@ def preprocess(path):
     history_vr_lists = defaultdict(list)
 
     G = nx.Graph()
-    G.name = path
+    G.name = 'ciao'
 
     ratings_f = loadmat(path + 'ciao/rating.mat')['rating']
     trust_f = loadmat(path + 'ciao/trustnetwork.mat')['trustnetwork']
-
-    # ratings_f = loadmat(path + 'epinions/rating.mat')['rating']
-    # trust_f = loadmat(path + 'epinions/trustnetwork.mat')['trustnetwork']
 
     for s in ratings_f:
         uid = s[0]
@@ -151,11 +150,13 @@ def preprocess(path):
     print("uSet of u2b, size: " + str(len(uSet_u2b)))
     print("bSet of u2b, size: " + str(len(bSet_u2b)))
 
+    # Relabeling nodes to consecutive integers
     G = nx.convert_node_labels_to_integers(G, first_label=0, ordering='default', label_attribute="name")
 
     node_names = nx.get_node_attributes(G, 'name')
     inv_map = {v: k for k, v in node_names.items()}
 
+    # Converting nodes in the sets to the relabeled nodes
     uSet_u2u = set([inv_map.get(name) for name in uSet_u2u])
     uSet_u2b = set([inv_map.get(name) for name in uSet_u2b])
     bSet_u2b = set([inv_map.get(name) for name in bSet_u2b])
@@ -178,6 +179,7 @@ def preprocess(path):
                     history_vr_lists[nbr].append(r)
                     edge_list_uv.append((node, nbr, r))
                     edge_list_vu.append((nbr, node, r))
+
                 if nbr in uSet_u2b and node in bSet_u2b:
                     history_u_lists[nbr].append(node)
                     history_v_lists[node].append(nbr)
@@ -204,9 +206,13 @@ def preprocess(path):
             else:
                 data.append((v, u, r))
 
+    random.shuffle(data)
+
     size = len(data)
     train_data = data[:int(0.8 * size)]
     test_data = data[int(0.8 * size):]
+
+    # TODO: Validation set
 
     with open(path + 'dataset.pkl', 'wb') as f:
         pickle.dump(train_data, f, pickle.HIGHEST_PROTOCOL)

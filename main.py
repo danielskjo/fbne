@@ -29,7 +29,7 @@ def train(model, device, train_loader, optimizer, epoch, best_rmse, best_mae):
 
         if i % 100 == 0:
             print('[%d, %5d] loss: %.3f, The best rmse/mae: %.6f / %.6f' % (
-                epoch, i, running_loss / 100, best_rmse, best_mae))
+            epoch, i, running_loss / 100, best_rmse, best_mae))
             running_loss = 0.0
 
     return 0
@@ -82,9 +82,16 @@ def main():
         train_u, train_v, train_r: training_set (user, item, rating)
         test_u, test_v, test_r: testing set (user, item, rating)
         """
+        # Users' history of purchased items
         history_u_lists = pickle.load(f)
+
+        # Users' ratings on their purchased items
         history_ur_lists = pickle.load(f)
+
+        # Items' history of users who purchased it
         history_v_lists = pickle.load(f)
+
+        # Item's ratings by the users who purchased it
         history_vr_lists = pickle.load(f)
         walks_u = pickle.load(f)
         walks_v = pickle.load(f)
@@ -101,28 +108,29 @@ def main():
                                               torch.FloatTensor(train_r))
     testset = torch.utils.data.TensorDataset(torch.LongTensor(test_u), torch.LongTensor(test_v),
                                              torch.FloatTensor(test_r))
+
     train_loader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size, shuffle=True)
     test_loader = torch.utils.data.DataLoader(testset, batch_size=args.test_batch_size, shuffle=True)
+
     num_users = history_u_lists.__len__()
     num_items = history_v_lists.__len__()
     num_ratings = ratings_list.__len__()
+
     print("number of users, items, ratings: ", num_users, num_items, num_ratings)
+
     u2e = nn.Embedding(num_users, embed_dim).to(device)
     v2e = nn.Embedding(num_items, embed_dim).to(device)
     r2e = nn.Embedding(num_ratings, embed_dim).to(device)
 
     agg_u_history = UVAggregator(v2e, r2e, u2e, embed_dim, cuda=device, uv=True)
     enc_u_history = UVEncoder(u2e, embed_dim, history_u_lists, history_ur_lists, agg_u_history, cuda=device, uv=True)
-    enc_u = FoldedEncoder(lambda nodes: enc_u_history(nodes).t(), u2e, embed_dim, 5, walks_u, base_model=enc_u_history,
-                          cuda=device)
+    enc_u = FoldedEncoder(lambda nodes: enc_u_history(nodes).t(), u2e, embed_dim, 5, walks_u, cuda=device)
 
     agg_v_history = UVAggregator(v2e, r2e, u2e, embed_dim, cuda=device, uv=False)
     enc_v_history = UVEncoder(v2e, embed_dim, history_v_lists, history_vr_lists, agg_v_history, cuda=device, uv=False)
+    enc_v = FoldedEncoder(lambda nodes: enc_v_history(nodes).t(), v2e, embed_dim, 5, walks_v, cuda=device)
 
-    enc_v = FoldedEncoder(lambda nodes: enc_v_history(nodes).t(), v2e, embed_dim, 5, walks_v, base_model=enc_v_history,
-                          cuda=device)
-
-    graphrec = GraphRec(enc_u, enc_v, r2e).to(device)
+    graphrec = GraphRec(enc_u, enc_v).to(device)
     optimizer = torch.optim.RMSprop(graphrec.parameters(), lr=args.lr, alpha=0.9)
 
     best_rmse = 9999.0
@@ -132,9 +140,9 @@ def main():
     for epoch in range(1, args.epochs + 1):
         train(graphrec, device, train_loader, optimizer, epoch, best_rmse, best_mae)
         expected_rmse, mae = test(graphrec, device, test_loader)
-        # please add the validation set to tune the hyper-parameters based on your datasets.
 
-        # early stopping (no validation set in toy dataset)
+        # TODO: Add validation set to tune hyper parameters
+        # early stopping (no validation set)
         if best_rmse > expected_rmse:
             best_rmse = expected_rmse
             best_mae = mae

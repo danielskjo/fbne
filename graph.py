@@ -155,8 +155,7 @@ def build_deepwalk_corpus(G, num_paths, path_length, alpha=0, rand=random.Random
     nodes = list(G.nodes())
 
     for node in nodes:
-        walks[node] = G.random_walk(
-            path_length, rand=rand, alpha=alpha, start=node)
+        walks[node] = G.random_walk(path_length, rand=rand, alpha=alpha, start=node)
     # for cnt in range(num_paths):
     # 	rand.shuffle(nodes)
     # 	for node in nodes:
