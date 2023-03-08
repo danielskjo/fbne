@@ -35,18 +35,25 @@ def train(model, device, train_loader, optimizer, epoch, best_rmse, best_mae):
     return 0
 
 
-def test(model, device, test_loader):
+def test(model, device, test_loader, epoch):
     model.eval()
     tmp_pred = []
     target = []
 
     with torch.no_grad():
+        f = open(f"epoch/{epoch}.txt", "a")
+
         for test_u, test_v, tmp_target in test_loader:
             test_u, test_v, tmp_target = test_u.to(device), test_v.to(device), tmp_target.to(device)
             val_output = model.forward(test_u, test_v)
             val_output = torch.clamp(val_output, min=0, max=4)
             tmp_pred.append(list(val_output.data.cpu().numpy()))
             target.append(list(tmp_target.data.cpu().numpy()))
+
+            for i in range(len(test_u)):
+                f.write(f"{test_u[i]} {test_v[i]} {val_output[i]} {tmp_target[i]}\n")
+
+        f.write("\n")
 
     tmp_pred = np.array(sum(tmp_pred, []))
     target = np.array(sum(target, []))
@@ -139,7 +146,7 @@ def main():
 
     for epoch in range(1, args.epochs + 1):
         train(graphrec, device, train_loader, optimizer, epoch, best_rmse, best_mae)
-        expected_rmse, mae = test(graphrec, device, test_loader)
+        expected_rmse, mae = test(graphrec, device, test_loader, epoch)
 
         # TODO: Add validation set to tune hyper parameters
         # early stopping (no validation set)
