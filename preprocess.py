@@ -191,44 +191,44 @@ def preprocess(path):
     G_u, walks_u, G_v, walks_v = generate_bipartite_folded_walks(path, history_u_lists, history_v_lists, edge_list_uv,
                                                                  edge_list_vu)
 
-    uSet_u2u = list(uSet_u2u)
-    random.shuffle(uSet_u2u)
-    size = len(uSet_u2u)
-    randomized_users = set(uSet_u2u[:int(0.8 * size)])
+    # uSet_u2u = list(uSet_u2u)
+    # random.shuffle(uSet_u2u)
+    # size = len(uSet_u2u)
+    # randomized_users = set(uSet_u2u[:int(0.8 * size)])
 
-    train_data = []
-    test_data = []
+    # train_data = []
+    # test_data = []
 
-    for (u, v) in G.edges():
-        if G[u][v]['type'] == 'u2b':
-            r = G[u][v]['rating'] - 1
-
-            if u in randomized_users:
-                if u in uSet_u2b:
-                    train_data.append((u, v, r))
-                else:
-                    train_data.append((v, u, r))
-            else:
-                if u in uSet_u2b:
-                    test_data.append((u, v, r))
-                else:
-                    test_data.append((v, u, r))
-
-    # data = []
     # for (u, v) in G.edges():
     #     if G[u][v]['type'] == 'u2b':
     #         r = G[u][v]['rating'] - 1
-    #
-    #         if u in uSet_u2b:
-    #             data.append((u, v, r))
-    #         else:
-    #             data.append((v, u, r))
-    #
-    # random.shuffle(data)
 
-    # size = len(data)
-    # train_data = data[:int(0.8 * size)]
-    # test_data = data[int(0.8 * size):]
+    #         if u in randomized_users:
+    #             if u in uSet_u2b:
+    #                 train_data.append((u, v, r))
+    #             else:
+    #                 train_data.append((v, u, r))
+    #         else:
+    #             if u in uSet_u2b:
+    #                 test_data.append((u, v, r))
+    #             else:
+    #                 test_data.append((v, u, r))
+
+    data = []
+    for (u, v) in G.edges():
+        if G[u][v]['type'] == 'u2b':
+            r = G[u][v]['rating'] - 1
+    
+            if u in uSet_u2b:
+                data.append((u, v, r))
+            else:
+                data.append((v, u, r))
+    
+    random.shuffle(data)
+
+    size = len(data)
+    train_data = data[:int(0.8 * size)]
+    test_data = data[int(0.8 * size):]
 
     # TODO: Validation set
 
