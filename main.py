@@ -129,13 +129,13 @@ def main():
     v2e = nn.Embedding(num_items, embed_dim).to(device)
     r2e = nn.Embedding(num_ratings, embed_dim).to(device)
 
-    agg_u_history = UVAggregator(v2e, r2e, u2e, embed_dim, cuda=device, uv=True)
-    enc_u_history = UVEncoder(u2e, embed_dim, history_u_lists, history_ur_lists, agg_u_history, cuda=device, uv=True)
-    enc_u = FoldedEncoder(lambda nodes: enc_u_history(nodes).t(), u2e, embed_dim, 5, walks_u, cuda=device)
+    agg_u_history = UVAggregator(v2e, r2e, u2e, embed_dim, cuda=device, uv=True).to(device)
+    enc_u_history = UVEncoder(u2e, embed_dim, history_u_lists, history_ur_lists, agg_u_history, cuda=device, uv=True).to(device)
+    enc_u = FoldedEncoder(lambda nodes: enc_u_history(nodes).t(), u2e, embed_dim, 5, walks_u, cuda=device).to(device)
 
-    agg_v_history = UVAggregator(v2e, r2e, u2e, embed_dim, cuda=device, uv=False)
-    enc_v_history = UVEncoder(v2e, embed_dim, history_v_lists, history_vr_lists, agg_v_history, cuda=device, uv=False)
-    enc_v = FoldedEncoder(lambda nodes: enc_v_history(nodes).t(), v2e, embed_dim, 5, walks_v, cuda=device)
+    agg_v_history = UVAggregator(v2e, r2e, u2e, embed_dim, cuda=device, uv=False).to(device)
+    enc_v_history = UVEncoder(v2e, embed_dim, history_v_lists, history_vr_lists, agg_v_history, cuda=device, uv=False).to(device)
+    enc_v = FoldedEncoder(lambda nodes: enc_v_history(nodes).t(), v2e, embed_dim, 5, walks_v, cuda=device).to(device)
 
     graphrec = GraphRec(enc_u, enc_v).to(device)
     optimizer = torch.optim.RMSprop(graphrec.parameters(), lr=args.lr, alpha=0.9)
