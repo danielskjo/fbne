@@ -130,10 +130,21 @@ def preprocess(path):
     ratings_f = loadmat(path + 'ciao/rating.mat')['rating']
     # trust_f = loadmat(path + 'test/trustnetwork.mat')['trustnetwork']
 
+    users = []
+
     for s in ratings_f:
         uid = s[0]
-        iid = s[1]
+        users.append(uid)
+
+    offset = len(set(users))
+
+    edges = []
+
+    for s in ratings_f:
+        uid = s[0]
+        iid = s[1] + offset
         rating = s[3]
+        edges.append((uid, iid, rating))
         uSet_u2b.add(uid)
         bSet_u2b.add(iid)
         G.add_edge(uid, iid, type='u2b', rating=rating)
@@ -223,8 +234,8 @@ def preprocess(path):
                 data.append((u, v, r))
             else:
                 data.append((v, u, r))
-    
-    # random.shuffle(data)
+
+    random.shuffle(data)
 
     size = len(data)
     train_data = data[:int(0.8 * size)]
