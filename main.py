@@ -66,9 +66,9 @@ def test(model, device, test_loader, epoch):
 def main():
     # Training settings
     parser = argparse.ArgumentParser(description='Social Recommendation: GraphRec model')
-    parser.add_argument('--batch_size', type=int, default=128, metavar='N', help='input batch size for training')
+    parser.add_argument('--batch_size', type=int, default=128, metavar='N', help='input batch size for training')  # 32, 64, 128
     parser.add_argument('--embed_dim', type=int, default=64, metavar='N', help='embedding size')
-    parser.add_argument('--lr', type=float, default=0.001, metavar='LR', help='learning rate')
+    parser.add_argument('--lr', type=float, default=0.0001, metavar='LR', help='learning rate')  # .001, 0.0005, .0001
     parser.add_argument('--test_batch_size', type=int, default=1000, metavar='N', help='input batch size for testing')
     parser.add_argument('--epochs', type=int, default=50, metavar='N', help='number of epochs to train')
     args = parser.parse_args()
@@ -108,7 +108,7 @@ def main():
         test_u = pickle.load(f)
         test_v = pickle.load(f)
         test_r = pickle.load(f)
-        social_adj_lists = pickle.load(f)
+        # social_adj_lists = pickle.load(f)
         ratings_list = pickle.load(f)
 
     trainset = torch.utils.data.TensorDataset(torch.LongTensor(train_u), torch.LongTensor(train_v),
