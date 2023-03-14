@@ -224,7 +224,7 @@ def preprocess(path):
             else:
                 data.append((v, u, r))
     
-    random.shuffle(data)
+    # random.shuffle(data)
 
     size = len(data)
     train_data = data[:int(0.8 * size)]
