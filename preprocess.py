@@ -138,13 +138,10 @@ def preprocess(path):
 
     offset = len(set(users))
 
-    edges = []
-
     for s in ratings_f:
         uid = s[0]
         iid = s[1] + offset
         rating = s[3]
-        edges.append((uid, iid, rating))
         uSet_u2b.add(uid)
         bSet_u2b.add(iid)
         G.add_edge(uid, iid, type='u2b', rating=rating)
