@@ -113,11 +113,11 @@ def generate_bipartite_folded_walks(path, history_u_lists, history_v_lists, edge
 
 
 def preprocess(path):
-    # uSet_u2u = set()
+    uSet_u2u = set()
     uSet_u2b = set()
     bSet_u2b = set()
 
-    # social_adj_lists = defaultdict(set)
+    social_adj_lists = defaultdict(set)
     history_u_lists = defaultdict(list)
     history_v_lists = defaultdict(list)
 
@@ -125,10 +125,10 @@ def preprocess(path):
     history_vr_lists = defaultdict(list)
 
     G = nx.Graph()
-    G.name = 'ciao'
+    G.name = 'epinions'
 
-    ratings_f = loadmat(path + 'ciao/rating.mat')['rating']
-    # trust_f = loadmat(path + 'test/trustnetwork.mat')['trustnetwork']
+    ratings_f = loadmat(path + 'epinions/rating.mat')['rating']
+    trust_f = loadmat(path + 'epinions/trustnetwork.mat')['trustnetwork']
 
     users = []
 
@@ -146,15 +146,15 @@ def preprocess(path):
         bSet_u2b.add(iid)
         G.add_edge(uid, iid, type='u2b', rating=rating)
 
-    # for s in trust_f:
-    #     uid = s[0]
-    #     fid = s[1]
-    #     uSet_u2u.add(uid)
-    #     uSet_u2u.add(fid)
-    #     G.add_edge(uid, fid, type='u2u')
+    for s in trust_f:
+        uid = s[0]
+        fid = s[1]
+        uSet_u2u.add(uid)
+        uSet_u2u.add(fid)
+        G.add_edge(uid, fid, type='u2u')
 
     print(G)
-    # print("uSet of u2u, size: " + str(len(uSet_u2u)))
+    print("uSet of u2u, size: " + str(len(uSet_u2u)))
     print("uSet of u2b, size: " + str(len(uSet_u2b)))
     print("bSet of u2b, size: " + str(len(bSet_u2b)))
 
@@ -165,7 +165,7 @@ def preprocess(path):
     inv_map = {v: k for k, v in node_names.items()}
 
     # Converting nodes in the sets to the relabeled nodes
-    # uSet_u2u = set([inv_map.get(name) for name in uSet_u2u])
+    uSet_u2u = set([inv_map.get(name) for name in uSet_u2u])
     uSet_u2b = set([inv_map.get(name) for name in uSet_u2b])
     bSet_u2b = set([inv_map.get(name) for name in bSet_u2b])
 
@@ -174,8 +174,8 @@ def preprocess(path):
 
     for node in G:
         for nbr in G[node]:
-            # if G[node][nbr]['type'] == 'u2u':
-            #     social_adj_lists[node].add(nbr)
+            if G[node][nbr]['type'] == 'u2u':
+                social_adj_lists[node].add(nbr)
 
             if G[node][nbr]['type'] == 'u2b':
                 r = G[node][nbr]['rating'] - 1
@@ -258,7 +258,7 @@ def preprocess(path):
 
     ratings_list = [0, 1, 2, 3, 4]
 
-    # _social_adj_lists = defaultdict(set)
+    _social_adj_lists = defaultdict(set)
     _history_u_lists = defaultdict(list)
     _history_v_lists = defaultdict(list)
 
@@ -266,7 +266,7 @@ def preprocess(path):
     _history_vr_lists = defaultdict(list)
     _train_u, _train_v, _train_r, _test_u, _test_v, _test_r = [], [], [], [], [], []
 
-    # social_id_dic = {v: k for k, v in dict(enumerate(social_adj_lists.keys())).items()}
+    social_id_dic = {v: k for k, v in dict(enumerate(social_adj_lists.keys())).items()}
     user_id_dic = {v: k for k, v in dict(enumerate(history_u_lists.keys())).items()}
     item_id_dic = {v: k for k, v in dict(enumerate(history_v_lists.keys())).items()}
 
@@ -282,8 +282,8 @@ def preprocess(path):
     for v in history_vr_lists:
         _history_vr_lists[item_id_dic[v]] = history_vr_lists[v]
 
-    # for u in social_adj_lists:
-    #     _social_adj_lists[social_id_dic[u]] = [social_id_dic[us] for us in social_adj_lists[u]]
+    for u in social_adj_lists:
+        _social_adj_lists[social_id_dic[u]] = [social_id_dic[us] for us in social_adj_lists[u]]
 
     for u, v, r in train_data:
         if u in user_id_dic.keys() and v in item_id_dic.keys():
@@ -318,7 +318,7 @@ def preprocess(path):
         pickle.dump(_test_u, f, pickle.HIGHEST_PROTOCOL)
         pickle.dump(_test_v, f, pickle.HIGHEST_PROTOCOL)
         pickle.dump(_test_r, f, pickle.HIGHEST_PROTOCOL)
-        # pickle.dump(_social_adj_lists, f, pickle.HIGHEST_PROTOCOL)
+        pickle.dump(_social_adj_lists, f, pickle.HIGHEST_PROTOCOL)
         pickle.dump(ratings_list, f, pickle.HIGHEST_PROTOCOL)
 
 

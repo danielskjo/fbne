@@ -108,7 +108,7 @@ def main():
         test_u = pickle.load(f)
         test_v = pickle.load(f)
         test_r = pickle.load(f)
-        # social_adj_lists = pickle.load(f)
+        social_adj_lists = pickle.load(f)
         ratings_list = pickle.load(f)
 
     trainset = torch.utils.data.TensorDataset(torch.LongTensor(train_u), torch.LongTensor(train_v),
