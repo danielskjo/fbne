@@ -67,7 +67,7 @@ def calculate_centrality(G, uSet, bSet, mode='hits'):
     return authority_u, authority_v
 
 
-def get_random_walks_restart(datafile):
+def get_random_walks_restart(datafile): # hits_dict, percentage, maxT, minT
     G = graph.load_edgelist(datafile, undirected=True)
     print("Folded HIN ==> number of nodes: {}".format(len(G.nodes())))
     print("walking...")

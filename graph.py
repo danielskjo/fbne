@@ -80,7 +80,8 @@ class Graph(defaultdict):
                 removed += 1
 
         t1 = time()
-        logger.info('remove_self_loops: removed {} loops in {}s'.format(removed, (t1 - t0)))
+        logger.info('remove_self_loops: removed {} loops in {}s'.format(
+            removed, (t1 - t0)))
 
         return self
 
@@ -146,6 +147,32 @@ class Graph(defaultdict):
 
         return path
 
+    def random_walk_restart(self, percentage, alpha=0, rand=random.Random(), start=None):
+        """ Returns a truncated random walk.
+        percentage: probability of stopping walking
+        alpha: probability of restarts.
+        start: the start node of the random walk.
+        """
+        G = self
+
+        if start is not None:
+            path = [start]
+        else:
+            path = [rand.choice(list(G.keys()))]
+
+        while len(path) < 1 or random.random() > percentage:
+            cur = path[-1]
+
+            if len(G[cur]) > 0:
+                if rand.random() >= alpha:
+                    path.append(rand.choice(G[cur]))
+                else:
+                    path.append(path[0])
+            else:
+                break
+            
+        return path
+
 
 # TODO add build_walks in here
 
@@ -155,11 +182,27 @@ def build_deepwalk_corpus(G, num_paths, path_length, alpha=0, rand=random.Random
     nodes = list(G.nodes())
 
     for node in nodes:
-        walks[node] = G.random_walk(path_length, rand=rand, alpha=alpha, start=node)
+        walks[node] = G.random_walk(
+            path_length, rand=rand, alpha=alpha, start=node)
     # for cnt in range(num_paths):
     # 	rand.shuffle(nodes)
     # 	for node in nodes:
     # 		walks.append(G.random_walk(path_length, rand=rand, alpha=alpha, start=node))
+
+    return walks
+
+
+def build_deepwalk_corpus_random(G, hits, percentage, maxT, minT):
+    walks = defaultdict(list)
+    nodes = list(G.nodes())
+
+    for node in nodes:
+        num_paths = max(int(math.ceil(maxT * hits_dict[node])), minT)
+
+        for cnt in range(num_paths):
+            walks[node] = G.random_walk_restart(percentage, rand=rand, alpha=alpha, start=node)
+
+    random.shuffle(walks)
 
     return walks
 
@@ -226,7 +269,8 @@ def load_adjacencylist(file_, undirected=False, chunksize=10000, unchecked=True)
             total += len(adj_chunk)
 
     t1 = time()
-    logger.info('Parsed {} edges with {} chunks in {}s'.format(total, idx, t1 - t0))
+    logger.info('Parsed {} edges with {} chunks in {}s'.format(
+        total, idx, t1 - t0))
     t0 = time()
     G = convert_func(adjlist)
     t1 = time()
