@@ -178,7 +178,7 @@ def preprocess(path):
                 social_adj_lists[node].add(nbr)
 
             if G[node][nbr]['type'] == 'u2b':
-                r = G[node][nbr]['rating'] - 1
+                r = G[node][nbr]['rating']
 
                 if node in uSet_u2b and nbr in bSet_u2b:
                     history_u_lists[node].append(nbr)
@@ -225,8 +225,8 @@ def preprocess(path):
     data = []
     for (u, v) in G.edges():
         if G[u][v]['type'] == 'u2b':
-            r = G[u][v]['rating'] - 1
-    
+            r = G[u][v]['rating']
+
             if u in uSet_u2b:
                 data.append((u, v, r))
             else:
@@ -256,7 +256,7 @@ def preprocess(path):
         test_v.append(v)
         test_r.append(r)
 
-    ratings_list = [0, 1, 2, 3, 4]
+    ratings_list = [1, 2, 3, 4, 5]
 
     _social_adj_lists = defaultdict(set)
     _history_u_lists = defaultdict(list)

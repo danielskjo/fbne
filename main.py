@@ -46,7 +46,7 @@ def test(model, device, test_loader, epoch):
         for test_u, test_v, tmp_target in test_loader:
             test_u, test_v, tmp_target = test_u.to(device), test_v.to(device), tmp_target.to(device)
             val_output = model.forward(test_u, test_v)
-            val_output = torch.clamp(val_output, min=0, max=4)
+            val_output = torch.clamp(val_output, min=1, max=5)
             tmp_pred.append(list(val_output.data.cpu().numpy()))
             target.append(list(tmp_target.data.cpu().numpy()))
 
