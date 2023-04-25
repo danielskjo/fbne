@@ -7,6 +7,7 @@ import random
 import networkx as nx
 from networkx.algorithms import bipartite as bi
 import numpy as np
+from scipy import sparse
 from scipy.io import loadmat
 
 import graph
@@ -77,6 +78,15 @@ def get_random_walks_restart(datafile): # hits_dict, percentage, maxT, minT
 
     return G, walks
 
+def innovation_get_random_walks_restart(datafile, prob):
+    G = graph.load_edgelist(datafile, undirected=True)
+    print("Folded HIN ==> number of nodes: {}".format(len(G.nodes())))
+    print("walking...")
+    walks = graph.innovation_build_deepwalk_corpus(G, None, 5, prob)
+    print("walking...ok")
+
+    return G, walks
+
 
 def generate_bipartite_folded_walks(path, history_u_lists, history_v_lists, edge_list_uv, edge_list_vu):
     BiG = nx.Graph()
@@ -108,6 +118,72 @@ def generate_bipartite_folded_walks(path, history_u_lists, history_v_lists, edge
     # TODO
     G_u, walks_u = get_random_walks_restart(fw_u)
     G_v, walks_v = get_random_walks_restart(fw_v)
+
+    return G_u, walks_u, G_v, walks_v
+
+
+def innovation(path, history_u_lists, history_v_lists, edge_list_uv, edge_list_vu):
+    BiG = nx.Graph()
+    node_u = sorted(history_u_lists.keys())
+    node_v = sorted(history_v_lists.keys())
+    n_users = len(node_u)
+    n_items = len(node_v)
+    n_nodes = n_users + n_items
+
+    BiG.add_nodes_from(node_u, bipartite=0)
+    BiG.add_nodes_from(node_v, bipartite=1)
+    BiG.add_weighted_edges_from(edge_list_uv + edge_list_vu)
+    A = nx.adjacency_matrix(BiG)
+
+    first_order_A = A.dot(A)
+    second_order_A = first_order_A.dot(first_order_A)
+
+    first_order_A = first_order_A.toarray()
+    np.fill_diagonal(first_order_A, 0)
+
+    second_order_A = second_order_A.toarray()
+    np.fill_diagonal(second_order_A, 0)
+
+    folded_A = np.ndarray(shape=(n_nodes, n_nodes), dtype=float)
+    folded_A[first_order_A > 0] = 0.5
+    folded_A[(second_order_A > 0) & (folded_A == 0)] = 0.25
+
+    def normalize(probs):
+        prob_factor = 1 / sum(probs)
+        return [prob_factor * p for p in probs]
+
+    users_matrix = folded_A[0:n_users, 0:n_users]
+
+    for i in range(n_users):
+        users_matrix[i] = normalize(users_matrix[i])
+
+    items_matrix = folded_A[n_users:n_nodes, n_users:n_nodes]
+
+    for i in range(n_items):
+        items_matrix[i] = normalize(items_matrix[i])
+
+    print(users_matrix)
+    print()
+    print(items_matrix)
+
+    row_index = dict(zip(node_u, itertools.count()))
+    col_index = dict(zip(node_v, itertools.count()))
+
+    index_row = dict(zip(row_index.values(), row_index.keys()))
+    index_item = dict(zip(col_index.values(), col_index.keys()))
+
+    fw_u = os.path.join(path, "homogeneous_u.dat")
+    fw_v = os.path.join(path, "homogeneous_v.dat")
+    save_homogenous_graph_to_file(sparse.csr_matrix(
+        users_matrix), fw_u, index_row, index_row)
+    save_homogenous_graph_to_file(sparse.csr_matrix(
+        items_matrix), fw_v, index_item, index_item)
+
+    G_u, walks_u = innovation_get_random_walks_restart(fw_u, users_matrix)
+    G_v, walks_v = innovation_get_random_walks_restart(fw_v, items_matrix)
+
+    print(G_u)
+    print(walks_u)
 
     return G_u, walks_u, G_v, walks_v
 
@@ -196,8 +272,9 @@ def preprocess(path):
                     edge_list_uv.append((nbr, node, r))
                     edge_list_vu.append((node, nbr, r))
 
-    G_u, walks_u, G_v, walks_v = generate_bipartite_folded_walks(path, history_u_lists, history_v_lists, edge_list_uv,
-                                                                 edge_list_vu)
+    G_u, walks_u, G_v, walks_v = innovation(path, history_u_lists, history_v_lists, edge_list_uv, edge_list_vu)
+    # G_u, walks_u, G_v, walks_v = generate_bipartite_folded_walks(path, history_u_lists, history_v_lists, edge_list_uv,
+    #                                                              edge_list_vu)
 
     # uSet_u2u = list(uSet_u2u)
     # random.shuffle(uSet_u2u)
