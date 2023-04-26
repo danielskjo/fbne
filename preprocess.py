@@ -128,43 +128,48 @@ def innovation(path, history_u_lists, history_v_lists, edge_list_uv, edge_list_v
     node_v = sorted(history_v_lists.keys())
     n_users = len(node_u)
     n_items = len(node_v)
-    n_nodes = n_users + n_items
 
     BiG.add_nodes_from(node_u, bipartite=0)
     BiG.add_nodes_from(node_v, bipartite=1)
     BiG.add_weighted_edges_from(edge_list_uv + edge_list_vu)
-    A = nx.adjacency_matrix(BiG)
+    A = bi.biadjacency_matrix(BiG, node_u, node_v, dtype=np.float64, weight='weight', format='csr')
+    AT = A.transpose()
 
-    first_order_A = A.dot(A)
-    second_order_A = first_order_A.dot(first_order_A)
+    first_order_user_A = A.dot(AT)
+    second_order_user_A = first_order_user_A.dot(first_order_user_A)
 
-    first_order_A = first_order_A.toarray()
-    np.fill_diagonal(first_order_A, 0)
+    first_order_user_A = first_order_user_A.toarray()
+    np.fill_diagonal(first_order_user_A, 0)
 
-    second_order_A = second_order_A.toarray()
-    np.fill_diagonal(second_order_A, 0)
+    second_order_user_A = second_order_user_A.toarray()
+    np.fill_diagonal(second_order_user_A, 0)
 
-    folded_A = np.ndarray(shape=(n_nodes, n_nodes), dtype=float)
-    folded_A[first_order_A > 0] = 0.5
-    folded_A[(second_order_A > 0) & (folded_A == 0)] = 0.25
+    first_order_item_A = AT.dot(A)
+    second_order_item_A = first_order_item_A.dot(first_order_item_A)
+
+    first_order_item_A = first_order_item_A.toarray()
+    np.fill_diagonal(first_order_item_A, 0)
+
+    second_order_item_A = second_order_item_A.toarray()
+    np.fill_diagonal(second_order_item_A, 0)
 
     def normalize(probs):
         prob_factor = 1 / sum(probs)
         return [prob_factor * p for p in probs]
 
-    users_matrix = folded_A[0:n_users, 0:n_users]
+    folded_user_A = np.ndarray(shape=(n_users, n_users), dtype=float)
+    folded_user_A[first_order_user_A > 0] = 0.5
+    folded_user_A[(second_order_user_A > 0) & (folded_user_A == 0)] = 0.25
 
     for i in range(n_users):
-        users_matrix[i] = normalize(users_matrix[i])
+        folded_user_A[i] = normalize(folded_user_A[i])
 
-    items_matrix = folded_A[n_users:n_nodes, n_users:n_nodes]
+    folded_item_A = np.ndarray(shape=(n_items, n_items), dtype=float)
+    folded_item_A[first_order_item_A > 0] = 0.5
+    folded_item_A[(second_order_item_A > 0) & (folded_item_A == 0)] = 0.25
 
     for i in range(n_items):
-        items_matrix[i] = normalize(items_matrix[i])
-
-    print(users_matrix)
-    print()
-    print(items_matrix)
+        folded_item_A[i] = normalize(folded_item_A[i])
 
     row_index = dict(zip(node_u, itertools.count()))
     col_index = dict(zip(node_v, itertools.count()))
@@ -175,15 +180,76 @@ def innovation(path, history_u_lists, history_v_lists, edge_list_uv, edge_list_v
     fw_u = os.path.join(path, "homogeneous_u.dat")
     fw_v = os.path.join(path, "homogeneous_v.dat")
     save_homogenous_graph_to_file(sparse.csr_matrix(
-        users_matrix), fw_u, index_row, index_row)
+        folded_user_A), fw_u, index_row, index_row)
     save_homogenous_graph_to_file(sparse.csr_matrix(
-        items_matrix), fw_v, index_item, index_item)
+        folded_item_A), fw_v, index_item, index_item)
 
-    G_u, walks_u = innovation_get_random_walks_restart(fw_u, users_matrix)
-    G_v, walks_v = innovation_get_random_walks_restart(fw_v, items_matrix)
+    G_u, walks_u = innovation_get_random_walks_restart(fw_u, folded_user_A)
+    G_v, walks_v = innovation_get_random_walks_restart(fw_v, folded_item_A)
 
-    print(G_u)
-    print(walks_u)
+    return G_u, walks_u, G_v, walks_v
+
+
+def innovation2(path, history_u_lists, history_v_lists, edge_list_uv, edge_list_vu):
+    BiG = nx.Graph()
+    node_u = sorted(history_u_lists.keys())
+    node_v = sorted(history_v_lists.keys())
+    n_users = len(node_u)
+    n_items = len(node_v)
+
+    BiG.add_nodes_from(node_u, bipartite=0)
+    BiG.add_nodes_from(node_v, bipartite=1)
+    BiG.add_weighted_edges_from(edge_list_uv + edge_list_vu)
+    A = bi.biadjacency_matrix(BiG, node_u, node_v, dtype=np.float64, weight='weight', format='csr')
+    AT = A.transpose()
+
+    first_order_user_A = A.dot(AT)
+    second_order_user_A = first_order_user_A.dot(first_order_user_A)
+
+    first_order_user_A = first_order_user_A.toarray()
+    np.fill_diagonal(first_order_user_A, 0)
+
+    second_order_user_A = second_order_user_A.toarray()
+    np.fill_diagonal(second_order_user_A, 0)
+
+    first_order_item_A = AT.dot(A)
+    second_order_item_A = first_order_item_A.dot(first_order_item_A)
+
+    first_order_item_A = first_order_item_A.toarray()
+    np.fill_diagonal(first_order_item_A, 0)
+
+    second_order_item_A = second_order_item_A.toarray()
+    np.fill_diagonal(second_order_item_A, 0)
+
+    def normalize(probs):
+        prob_factor = 1 / sum(probs)
+        return [prob_factor * p for p in probs]
+
+    folded_user_A = np.ndarray(shape=(n_users, n_users), dtype=float)
+
+    for i in range(n_users):
+        folded_user_A[i] = normalize(second_order_user_A[i])
+
+    folded_item_A = np.ndarray(shape=(n_items, n_items), dtype=float)
+
+    for i in range(n_items):
+        folded_item_A[i] = normalize(second_order_item_A[i])
+
+    row_index = dict(zip(node_u, itertools.count()))
+    col_index = dict(zip(node_v, itertools.count()))
+
+    index_row = dict(zip(row_index.values(), row_index.keys()))
+    index_item = dict(zip(col_index.values(), col_index.keys()))
+
+    fw_u = os.path.join(path, "homogeneous_u.dat")
+    fw_v = os.path.join(path, "homogeneous_v.dat")
+    save_homogenous_graph_to_file(sparse.csr_matrix(
+        folded_user_A), fw_u, index_row, index_row)
+    save_homogenous_graph_to_file(sparse.csr_matrix(
+        folded_item_A), fw_v, index_item, index_item)
+
+    G_u, walks_u = innovation_get_random_walks_restart(fw_u, folded_user_A)
+    G_v, walks_v = innovation_get_random_walks_restart(fw_v, folded_item_A)
 
     return G_u, walks_u, G_v, walks_v
 
@@ -203,8 +269,8 @@ def preprocess(path):
     G = nx.Graph()
     G.name = 'epinions'
 
-    ratings_f = loadmat(path + 'epinions/rating.mat')['rating']
-    trust_f = loadmat(path + 'epinions/trustnetwork.mat')['trustnetwork']
+    ratings_f = loadmat(path + 'test/rating.mat')['rating']
+    trust_f = loadmat(path + 'test/trustnetwork.mat')['trustnetwork']
 
     users = []
 
