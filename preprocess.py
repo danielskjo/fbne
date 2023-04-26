@@ -269,8 +269,8 @@ def preprocess(path):
     G = nx.Graph()
     G.name = 'epinions'
 
-    ratings_f = loadmat(path + 'test/rating.mat')['rating']
-    trust_f = loadmat(path + 'test/trustnetwork.mat')['trustnetwork']
+    ratings_f = loadmat(path + 'epinions/rating.mat')['rating']
+    trust_f = loadmat(path + 'epinions/trustnetwork.mat')['trustnetwork']
 
     users = []
 
