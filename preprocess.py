@@ -132,26 +132,20 @@ def innovation(path, history_u_lists, history_v_lists, edge_list_uv, edge_list_v
     BiG.add_nodes_from(node_u, bipartite=0)
     BiG.add_nodes_from(node_v, bipartite=1)
     BiG.add_weighted_edges_from(edge_list_uv + edge_list_vu)
-    A = bi.biadjacency_matrix(BiG, node_u, node_v, dtype=np.float64, weight='weight', format='csr')
+    A = bi.biadjacency_matrix(BiG, node_u, node_v, dtype=np.uint32, weight='weight', format='csr')
     AT = A.transpose()
 
     first_order_user_A = A.dot(AT)
     second_order_user_A = first_order_user_A.dot(first_order_user_A)
 
-    first_order_user_A = first_order_user_A.toarray()
-    np.fill_diagonal(first_order_user_A, 0)
-
-    second_order_user_A = second_order_user_A.toarray()
-    np.fill_diagonal(second_order_user_A, 0)
+    first_order_user_A.setdiag(0)
+    second_order_user_A.setdiag(0)
 
     first_order_item_A = AT.dot(A)
     second_order_item_A = first_order_item_A.dot(first_order_item_A)
 
-    first_order_item_A = first_order_item_A.toarray()
-    np.fill_diagonal(first_order_item_A, 0)
-
-    second_order_item_A = second_order_item_A.toarray()
-    np.fill_diagonal(second_order_item_A, 0)
+    first_order_item_A.setdiag(0)
+    second_order_item_A.setdiag(0)
 
     def normalize(probs):
         prob_factor = 1 / sum(probs)
