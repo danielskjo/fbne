@@ -9,6 +9,7 @@ from networkx.algorithms import bipartite as bi
 import numpy as np
 from scipy import sparse
 from scipy.io import loadmat
+from sklearn.preprocessing import normalize
 
 import graph
 
@@ -147,23 +148,15 @@ def innovation(path, history_u_lists, history_v_lists, edge_list_uv, edge_list_v
     first_order_item_A.setdiag(0)
     second_order_item_A.setdiag(0)
 
-    def normalize(probs):
-        prob_factor = 1 / sum(probs)
-        return [prob_factor * p for p in probs]
-
-    folded_user_A = np.ndarray(shape=(n_users, n_users), dtype=float)
+    folded_user_A = sparse.csr_array((n_users, n_users), dtype=np.float32)
+    folded_user_A[second_order_user_A > 0] = 0.25
     folded_user_A[first_order_user_A > 0] = 0.5
-    folded_user_A[(second_order_user_A > 0) & (folded_user_A == 0)] = 0.25
+    normalize(folded_user_A, norm='l1', axis=1, copy=False)
 
-    for i in range(n_users):
-        folded_user_A[i] = normalize(folded_user_A[i])
-
-    folded_item_A = np.ndarray(shape=(n_items, n_items), dtype=float)
+    folded_item_A = sparse.csr_array((n_items, n_items), dtype=np.float32)
+    folded_item_A[second_order_item_A > 0] = 0.25
     folded_item_A[first_order_item_A > 0] = 0.5
-    folded_item_A[(second_order_item_A > 0) & (folded_item_A == 0)] = 0.25
-
-    for i in range(n_items):
-        folded_item_A[i] = normalize(folded_item_A[i])
+    normalize(folded_item_A, norm='l1', axis=1, copy=False)
 
     row_index = dict(zip(node_u, itertools.count()))
     col_index = dict(zip(node_v, itertools.count()))
@@ -178,8 +171,8 @@ def innovation(path, history_u_lists, history_v_lists, edge_list_uv, edge_list_v
     save_homogenous_graph_to_file(sparse.csr_matrix(
         folded_item_A), fw_v, index_item, index_item)
 
-    G_u, walks_u = innovation_get_random_walks_restart(fw_u, folded_user_A)
-    G_v, walks_v = innovation_get_random_walks_restart(fw_v, folded_item_A)
+    G_u, walks_u = innovation_get_random_walks_restart(fw_u, folded_user_A.toarray())
+    G_v, walks_v = innovation_get_random_walks_restart(fw_v, folded_item_A.toarray())
 
     return G_u, walks_u, G_v, walks_v
 
@@ -314,7 +307,7 @@ def preprocess(path):
                 social_adj_lists[node].add(nbr)
 
             if G[node][nbr]['type'] == 'u2b':
-                r = G[node][nbr]['rating']
+                r = G[node][nbr]['rating'] - 1
 
                 if node in uSet_u2b and nbr in bSet_u2b:
                     history_u_lists[node].append(nbr)
@@ -362,7 +355,7 @@ def preprocess(path):
     data = []
     for (u, v) in G.edges():
         if G[u][v]['type'] == 'u2b':
-            r = G[u][v]['rating']
+            r = G[u][v]['rating'] - 1
 
             if u in uSet_u2b:
                 data.append((u, v, r))
@@ -393,7 +386,7 @@ def preprocess(path):
         test_v.append(v)
         test_r.append(r)
 
-    ratings_list = [1, 2, 3, 4, 5]
+    ratings_list = [0, 1, 2, 3, 4]
 
     _social_adj_lists = defaultdict(set)
     _history_u_lists = defaultdict(list)
