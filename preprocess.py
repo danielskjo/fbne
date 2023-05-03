@@ -314,16 +314,16 @@ def preprocess(path):
                     history_v_lists[nbr].append(node)
                     history_ur_lists[node].append(r)
                     history_vr_lists[nbr].append(r)
-                    edge_list_uv.append((node, nbr, r))
-                    edge_list_vu.append((nbr, node, r))
+                    edge_list_uv.append((node, nbr, r + 1))
+                    edge_list_vu.append((nbr, node, r + 1))
 
                 if nbr in uSet_u2b and node in bSet_u2b:
                     history_u_lists[nbr].append(node)
                     history_v_lists[node].append(nbr)
                     history_ur_lists[nbr].append(r)
                     history_vr_lists[node].append(r)
-                    edge_list_uv.append((nbr, node, r))
-                    edge_list_vu.append((node, nbr, r))
+                    edge_list_uv.append((nbr, node, r + 1))
+                    edge_list_vu.append((node, nbr, r + 1))
 
     G_u, walks_u, G_v, walks_v = innovation(path, history_u_lists, history_v_lists, edge_list_uv, edge_list_vu)
     # G_u, walks_u, G_v, walks_v = generate_bipartite_folded_walks(path, history_u_lists, history_v_lists, edge_list_uv,
