@@ -15,6 +15,8 @@ from itertools import permutations
 from scipy.io import loadmat
 from scipy.sparse import issparse
 
+from db import db, cursor
+
 logger = logging.getLogger("deepwalk")
 
 __author__ = "Bryan Perozzi"
@@ -173,8 +175,9 @@ class Graph(defaultdict):
             
         return path
 
-    def innovation_random_walk(self, path_length, prob, alpha=0, rand=random.Random(), start=None):
+    def innovation_random_walk(self, path_length, uv, alpha=0, rand=random.Random(), start=None):
         G = self
+        table_name = 'user_prob' if uv else 'item_prob'
 
         if start is not None:
             path = [start]
@@ -187,7 +190,9 @@ class Graph(defaultdict):
             if len(G[cur]) > 0:
                 if rand.random() >= alpha:
                     index = sorted(list(G.keys())).index(cur)
-                    next_node = rand.choices(sorted(list(G.keys())), weights=prob[index], k=1)[0]
+                    cursor.execute(f'SELECT `prob` FROM {table_name} WHERE `row`={index} ORDER BY col')
+                    prob = [t[0] for t in cursor.fetchall()]
+                    next_node = rand.choices(sorted(list(G.keys())), weights=prob, k=1)[0]
                     path.append(next_node)
                 else:
                     path.append(path[0])
@@ -242,12 +247,12 @@ def build_deepwalk_corpus_iter(G, num_paths, path_length, alpha=0, rand=random.R
             yield G.random_walk(path_length, rand=rand, alpha=alpha, start=node)
 
 
-def innovation_build_deepwalk_corpus(G, num_paths, path_length, prob, alpha=0, rand=random.Random(0)):
+def innovation_build_deepwalk_corpus(G, num_paths, path_length, uv, alpha=0, rand=random.Random(0)):
     walks = defaultdict(list)
     nodes = list(G.nodes())
 
     for node in nodes:
-        walks[node] = G.innovation_random_walk(path_length, prob, rand=rand, alpha=alpha, start=node)
+        walks[node] = G.innovation_random_walk(path_length, uv, rand=rand, alpha=alpha, start=node)
 
     return walks
 
